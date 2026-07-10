@@ -8,6 +8,8 @@ const APP_DIRECTORY = "app";
 const MANIFEST_FILE = "plugin-manifest.json";
 const ZIP_FILE = "widget.zip";
 const ZIP_MTIME = new Date(1980, 0, 1, 0, 0, 0);
+const ZOHO_ENTRY_WARNING_THRESHOLD = 250;
+const ZOHO_FILE_SIZE_WARNING_BYTES = 5_000_000;
 const DIRECTORY_ZIP_OPTIONS = {
   os: 3,
   attrs: 0o40755 << 16,
@@ -117,9 +119,16 @@ async function writeWidgetZip(config: ResolvedConfig, manifest: Uint8Array): Pro
   const outDir = path.resolve(config.root, config.build.outDir);
   const zipPath = path.resolve(outDir, ZIP_FILE);
   const entries = await collectBuildEntries(outDir, zipPath);
+  const archiveEntryCount = entries.length + 1;
 
   if (!entries.some((entry) => entry.type === "file")) {
     throw new Error(`zwidget could not find any build output files in ${outDir}.`);
+  }
+
+  if (archiveEntryCount >= ZOHO_ENTRY_WARNING_THRESHOLD) {
+    config.logger.warn(
+      `zwidget: widget.zip will contain ${archiveEntryCount} zip entries. Zoho uploads have been observed to reject widgets near 300 entries; reduce Vite's emitted file count if this artifact is rejected.`,
+    );
   }
 
   const archive: Zippable = {
@@ -127,10 +136,20 @@ async function writeWidgetZip(config: ResolvedConfig, manifest: Uint8Array): Pro
   };
 
   for (const entry of entries) {
-    archive[entry.archivePath] =
-      entry.type === "directory"
-        ? [new Uint8Array(), DIRECTORY_ZIP_OPTIONS]
-        : [await readFile(entry.filePath), FILE_ZIP_OPTIONS];
+    if (entry.type === "directory") {
+      archive[entry.archivePath] = [new Uint8Array(), DIRECTORY_ZIP_OPTIONS];
+      continue;
+    }
+
+    const file = await readFile(entry.filePath);
+
+    if (file.byteLength >= ZOHO_FILE_SIZE_WARNING_BYTES) {
+      config.logger.warn(
+        `zwidget: ${entry.archivePath} is ${formatMegabytes(file.byteLength)}. Zoho uploads have been observed to reject individual files over 5 MB; split this asset if this artifact is rejected.`,
+      );
+    }
+
+    archive[entry.archivePath] = [file, FILE_ZIP_OPTIONS];
   }
 
   await writeFile(zipPath, zipSync(archive, { mtime: ZIP_MTIME }));
@@ -196,6 +215,10 @@ function toZipPath(filePath: string): string {
 
 function isFileNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function formatMegabytes(bytes: number): string {
+  return `${(bytes / 1_000_000).toFixed(2)} MB`;
 }
 
 type ArchiveEntry = ArchiveDirectory | ArchiveFile;

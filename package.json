@@ -1,18 +1,19 @@
 {
   "name": "@indev42/zwidget",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "A vite plugin for creating Zoho widget artifacts.",
+  "license": "MIT",
   "packageManager": "bun@1.3.13",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/indev42/zwidget.git"
+    "url": "git+https://github.com/inDev42Labs/zwidget.git"
   },
   "bugs": {
-    "url": "https://github.com/indev42/zwidget/issues"
+    "url": "https://github.com/inDev42Labs/zwidget/issues"
   },
-  "homepage": "https://github.com/indev42/zwidget#readme",
+  "homepage": "https://github.com/inDev42Labs/zwidget#readme",
   "types": "./dist/index.d.mts",
   "exports": {
     ".": {
@@ -23,6 +24,7 @@
   },
   "files": [
     "dist",
+    "LICENSE",
     "README.md"
   ],
   "publishConfig": {

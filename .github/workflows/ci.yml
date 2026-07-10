@@ -31,3 +31,9 @@ jobs:
 
       - name: Verify package contents
         run: bun run pack:dry-run
+
+      - name: Lint
+      - run: bun run lint
+
+      - name: Format Check
+      - run: bun run fmt:check

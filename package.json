@@ -1,0 +1,30 @@
+{
+  "name": "@indev42/zwidget",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A vite plugin for creating Zoho widget artifacts.",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch"
+  },
+  "peerDependencies": {
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3",
+    "vite": "^7.0.0"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3"
+  }
+}

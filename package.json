@@ -8,12 +8,12 @@
   "packageManager": "bun@1.3.13",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/indev42/zwidget.git"
+    "url": "git+https://github.com/inDev42Labs/zwidget.git"
   },
   "bugs": {
-    "url": "https://github.com/indev42/zwidget/issues"
+    "url": "https://github.com/inDev42Labs/zwidget/issues"
   },
-  "homepage": "https://github.com/indev42/zwidget#readme",
+  "homepage": "https://github.com/inDev42Labs/zwidget#readme",
   "types": "./dist/index.d.mts",
   "exports": {
     ".": {

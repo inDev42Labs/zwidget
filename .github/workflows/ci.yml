@@ -33,7 +33,7 @@ jobs:
         run: bun run pack:dry-run
 
       - name: Lint
-      - run: bun run lint
+        run: bun run lint
 
       - name: Format Check
-      - run: bun run fmt:check
+        run: bun run fmt:check

@@ -1,19 +1,23 @@
 {
   "name": "@indev42/zwidget",
-  "type": "module",
   "version": "0.1.1",
   "private": false,
   "description": "A vite plugin for creating Zoho widget artifacts.",
+  "homepage": "https://github.com/inDev42Labs/zwidget#readme",
+  "bugs": {
+    "url": "https://github.com/inDev42Labs/zwidget/issues"
+  },
   "license": "MIT",
-  "packageManager": "bun@1.3.13",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/inDev42Labs/zwidget.git"
   },
-  "bugs": {
-    "url": "https://github.com/inDev42Labs/zwidget/issues"
-  },
-  "homepage": "https://github.com/inDev42Labs/zwidget#readme",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "type": "module",
   "types": "./dist/index.d.mts",
   "exports": {
     ".": {
@@ -22,11 +26,6 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md"
-  ],
   "publishConfig": {
     "access": "public"
   },
@@ -42,18 +41,20 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check"
   },
-  "peerDependencies": {
-    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+  "dependencies": {
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
     "@types/node": "^26.1.1",
     "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
     "tsdown": "^0.22.0",
     "typescript": "^6.0.3",
     "vite": "^8.1.4"
   },
-  "dependencies": {
-    "fflate": "^0.8.3"
-  }
+  "peerDependencies": {
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "packageManager": "bun@1.3.13"
 }

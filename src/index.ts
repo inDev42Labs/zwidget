@@ -1,14 +1,24 @@
 import { Buffer } from "node:buffer";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { zipSync, type Zippable } from "fflate";
+import { zipSync, type Zippable, type ZipOptions } from "fflate";
 import type { Plugin, ResolvedConfig, UserConfig } from "vite";
 
-const WIDGET_DIRECTORY = "widget";
-const APP_DIRECTORY = `${WIDGET_DIRECTORY}/app`;
+const APP_DIRECTORY = "app";
 const MANIFEST_FILE = "plugin-manifest.json";
 const ZIP_FILE = "widget.zip";
 const ZIP_MTIME = new Date(1980, 0, 1, 0, 0, 0);
+const DIRECTORY_ZIP_OPTIONS = {
+  os: 3,
+  attrs: 0o40755 << 16,
+  level: 0,
+  mtime: ZIP_MTIME,
+} satisfies ZipOptions;
+const FILE_ZIP_OPTIONS = {
+  os: 3,
+  attrs: 0o100644 << 16,
+  mtime: ZIP_MTIME,
+} satisfies ZipOptions;
 
 export function zwidget(): Plugin {
   let config: ResolvedConfig | undefined;
@@ -106,29 +116,37 @@ async function readValidatedManifest(root: string): Promise<Uint8Array> {
 async function writeWidgetZip(config: ResolvedConfig, manifest: Uint8Array): Promise<string> {
   const outDir = path.resolve(config.root, config.build.outDir);
   const zipPath = path.resolve(outDir, ZIP_FILE);
-  const files = await collectBuildFiles(outDir, zipPath);
+  const entries = await collectBuildEntries(outDir, zipPath);
 
-  if (files.length === 0) {
+  if (!entries.some((entry) => entry.type === "file")) {
     throw new Error(`zwidget could not find any build output files in ${outDir}.`);
   }
 
   const archive: Zippable = {
-    [`${WIDGET_DIRECTORY}/${MANIFEST_FILE}`]: [manifest, { mtime: ZIP_MTIME }],
+    [MANIFEST_FILE]: [manifest, FILE_ZIP_OPTIONS],
   };
 
-  for (const file of files) {
-    archive[file.archivePath] = [await readFile(file.filePath), { mtime: ZIP_MTIME }];
+  for (const entry of entries) {
+    archive[entry.archivePath] =
+      entry.type === "directory"
+        ? [new Uint8Array(), DIRECTORY_ZIP_OPTIONS]
+        : [await readFile(entry.filePath), FILE_ZIP_OPTIONS];
   }
 
   await writeFile(zipPath, zipSync(archive, { mtime: ZIP_MTIME }));
   return zipPath;
 }
 
-async function collectBuildFiles(outDir: string, zipPath: string): Promise<ArchiveFile[]> {
-  const files: ArchiveFile[] = [];
+async function collectBuildEntries(outDir: string, zipPath: string): Promise<ArchiveEntry[]> {
+  const entries: ArchiveEntry[] = [
+    {
+      type: "directory",
+      archivePath: `${APP_DIRECTORY}/`,
+    },
+  ];
 
   try {
-    await walkBuildOutput(outDir, outDir, zipPath, files);
+    await walkBuildOutput(outDir, outDir, zipPath, entries);
   } catch (error) {
     if (isFileNotFoundError(error)) {
       throw new Error(`zwidget could not find Vite build output directory ${outDir}.`);
@@ -137,22 +155,26 @@ async function collectBuildFiles(outDir: string, zipPath: string): Promise<Archi
     throw error;
   }
 
-  return files.sort((a, b) => a.archivePath.localeCompare(b.archivePath));
+  return entries.sort((a, b) => a.archivePath.localeCompare(b.archivePath));
 }
 
 async function walkBuildOutput(
   root: string,
   directory: string,
   zipPath: string,
-  files: ArchiveFile[],
+  entries: ArchiveEntry[],
 ): Promise<void> {
-  const entries = await readdir(directory, { withFileTypes: true });
+  const directoryEntries = await readdir(directory, { withFileTypes: true });
 
-  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const entry of directoryEntries.sort((a, b) => a.name.localeCompare(b.name))) {
     const filePath = path.resolve(directory, entry.name);
 
     if (entry.isDirectory()) {
-      await walkBuildOutput(root, filePath, zipPath, files);
+      entries.push({
+        type: "directory",
+        archivePath: `${APP_DIRECTORY}/${toZipPath(path.relative(root, filePath))}/`,
+      });
+      await walkBuildOutput(root, filePath, zipPath, entries);
       continue;
     }
 
@@ -160,7 +182,8 @@ async function walkBuildOutput(
       continue;
     }
 
-    files.push({
+    entries.push({
+      type: "file",
       filePath,
       archivePath: `${APP_DIRECTORY}/${toZipPath(path.relative(root, filePath))}`,
     });
@@ -175,7 +198,15 @@ function isFileNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
+type ArchiveEntry = ArchiveDirectory | ArchiveFile;
+
+interface ArchiveDirectory {
+  type: "directory";
+  archivePath: string;
+}
+
 interface ArchiveFile {
+  type: "file";
   filePath: string;
   archivePath: string;
 }

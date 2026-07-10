@@ -19,14 +19,13 @@ Run `vite build` with a valid `plugin-manifest.json` at the Vite project root. T
 
 ```txt
 widget.zip
-  widget/
-    plugin-manifest.json
-    app/
-      index.html
-      assets/
+  plugin-manifest.json
+  app/
+    index.html
+    assets/
 ```
 
-`plugin-manifest.json` is parsed to verify that it contains valid JSON, then copied into the zip using its original bytes. Vite build output remains unchanged on disk and is mapped under `widget/app/` only inside `widget.zip`.
+`plugin-manifest.json` is parsed to verify that it contains valid JSON, then copied into the zip using its original bytes. Vite build output remains unchanged on disk and is mapped under `app/` only inside `widget.zip`.
 
 ## Behavior
 

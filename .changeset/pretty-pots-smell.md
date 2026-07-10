@@ -2,4 +2,4 @@
 "@indev42/zwidget": patch
 ---
 
-Nest generated widget artifacts under the `widget/` directory inside `widget.zip`.
+Match Zoho's accepted widget zip layout with root `plugin-manifest.json` and `app/` entries.

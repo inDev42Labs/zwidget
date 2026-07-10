@@ -35,3 +35,17 @@ widget.zip
 - Supports standard client app builds only, not SSR or library builds.
 - Includes all files emitted to `build.outDir`, including dotfiles, except `widget.zip` itself.
 - Sorts archive entries and normalizes zip timestamps for deterministic output.
+
+## Release Process
+
+This repo uses Changesets for versioning and GitHub Actions for CI/CD.
+
+Create a changeset for user-facing changes:
+
+```sh
+bun run changeset
+```
+
+When changesets are merged to `main`, the `Release` workflow creates or updates a version PR. Merge that version PR, then create a GitHub Release with a tag matching the package version to publish to npm.
+
+The npm publish job uses Trusted Publishing/OIDC. Configure npm's trusted publisher for this package with workflow filename `release.yml` and ensure `package.json` `repository.url` exactly matches the GitHub repository.

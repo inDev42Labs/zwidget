@@ -4,7 +4,8 @@ import path from "node:path";
 import { zipSync, type Zippable } from "fflate";
 import type { Plugin, ResolvedConfig, UserConfig } from "vite";
 
-const APP_DIRECTORY = "app";
+const WIDGET_DIRECTORY = "widget";
+const APP_DIRECTORY = `${WIDGET_DIRECTORY}/app`;
 const MANIFEST_FILE = "plugin-manifest.json";
 const ZIP_FILE = "widget.zip";
 const ZIP_MTIME = new Date(1980, 0, 1, 0, 0, 0);
@@ -35,11 +36,15 @@ export function zwidget(): Plugin {
       assertRelativeBase(resolvedConfig.base);
 
       if (resolvedConfig.build.ssr) {
-        throw new Error("zwidget supports standard client builds only; build.ssr is not supported.");
+        throw new Error(
+          "zwidget supports standard client builds only; build.ssr is not supported.",
+        );
       }
 
       if (resolvedConfig.build.lib) {
-        throw new Error("zwidget supports standard client builds only; build.lib is not supported.");
+        throw new Error(
+          "zwidget supports standard client builds only; build.lib is not supported.",
+        );
       }
     },
 
@@ -108,7 +113,7 @@ async function writeWidgetZip(config: ResolvedConfig, manifest: Uint8Array): Pro
   }
 
   const archive: Zippable = {
-    [MANIFEST_FILE]: [manifest, { mtime: ZIP_MTIME }],
+    [`${WIDGET_DIRECTORY}/${MANIFEST_FILE}`]: [manifest, { mtime: ZIP_MTIME }],
   };
 
   for (const file of files) {
